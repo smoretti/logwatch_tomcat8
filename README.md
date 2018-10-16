@@ -1,7 +1,7 @@
 # Description #
-This is a set of custom filters and settings for monitoring different services with **logwatch** (http://sourceforge.net/projects/logwatch/). Copy this files in your _/etc/logwatch/_ directory.
+This is a set of custom filters and settings for monitoring different services with **logwatch** (https://sourceforge.net/projects/logwatch/). Copy this files in your _/etc/logwatch/_ or _/usr/share/logwatch/_ directory depending of your Linux OS.
 # Services #
-## Tomcat 7 ##
+## Tomcat 8 ##
 This service able to accumulate and summarize information about Errors in _catalina.out_ log file.
 It has 2 modes:
 
@@ -12,27 +12,22 @@ It has 2 modes:
 Short mode:
 	
 	
-	--------------------- Tomcat 7 Begin ------------------------  	
+	--------------------- Tomcat 8 Begin ----------------------
 	Unique errors: 2
 	Total num of Errors: 18
-	--------------------- Tomcat 7 End ------------------------
+	--------------------- Tomcat 8 End ------------------------
 
 Full mode:
 	
-	--------------------- Tomcat 7 Begin ------------------------
-	Message: SEVERE: Terminal error:
-	java.lang.ClassCastException: java.util.Collections$UnmodifiableSet cannot be cast to java.lang.Boolean
-	Count: 14
+	--------------------- Tomcat 8 Begin ------------------------
+	ERROR org.view.xml.XmlFactory 56 getErrorDisplay - throwing java.lang.UnsupportedOperationException: Not available for XML display
+		at org.view.xml.XmlFactory.getErrorDisplay(XmlFactory.java:56)
 	-------------------------------
-	Message: SEVERE: Terminal error:
-	com.vaadin.event.ListenerMethod$MethodException: Invocation of method buttonClick in com..admin.ui.view.pe.process.ProcessInstancesView$2 failed.
-	Caused by: java.lang.NullPointerException
-	Count: 4
+	ERROR org.controller.FrontController 293 doRequest - catching org.controller.exception.InvalidFormatException: Incorrect parameter: search
+		at org.controller.RequestParameters.throwIfInvalidFormatParamValue(RequestParameters.java:2831)
+		at org.controller.RequestParameters.secureString(RequestParameters.java:2788)
 	-------------------------------
 	Unique errors: 2
 	Total num of Errors: 18
-	--------------------- Tomcat 7 End ------------------------
+	--------------------- Tomcat 8 End ------------------------
 	
-## Java (Logback) ##
-Service provide accumulation of Java  ERROR logs, whitch created by Logback Framework in default configuration.
-You can specify typical errors, whitch only will be counted by Logwatch. Rest of messages will be marked as "unmatched" and included in Logwatch output (without stacktrace).

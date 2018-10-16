@@ -1,0 +1,87 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use diagnostics;
+use List::MoreUtils qw(any);
+
+#########################################
+# Errors you do NOT want to log:
+#Mostly user errors, not application errors!
+my @skipped_exceptions = ('throwIfInvalidFormatParamValue', 'throwIfParamValueTooLong', 'PageNotFoundException');
+
+# log level you want to watch
+my @log_levels = ('ERROR', 'SEVERE', 'FATAL');
+
+# stacktrace useful to watch
+my @stacktrace = ('org.view');
+#########################################
+
+
+# Detail level
+my $Detail = $ENV{'LOGWATCH_DETAIL_LEVEL'} || 5;
+
+
+# total number of errors in log file
+my $Total_err = 0;
+# hash with only unique errors, where KEY - error message, VALUE - number of errors of this type
+my %unique_err = ();
+# default value of error message
+my $Message = '';
+# total number of unique errors
+my $Unique_err_num;
+
+
+MAIN_LOOP:
+while ( defined(my $line = <STDIN>) ){
+    # tomcat8 date regex, beginning of the message
+    if ( $line =~ /^\d{2}:\d{2}:\d{2}\.\d{3} \[.+?\] ([A-Z]+ .+)$/ ){
+        $Message = $1;
+        if ( any { $Message =~ /$_/ } @skipped_exceptions ){
+            $Message = '';
+            next MAIN_LOOP;
+        }
+
+        if ( any { $Message =~ /^$_/ } @log_levels ){
+            $unique_err{ $Message } = '';
+            $Total_err++;
+        }
+    }
+    # Useful stacktrace for us
+    elsif ( any { $line =~ /^(\s+at $_.+)$/ } @stacktrace ){
+        my $stacktrace = $1;
+        $unique_err{ $Message } .= $stacktrace."\n"  if ( $unique_err{ $Message } !~ /$stacktrace/ );
+    }
+    # Ignorable strings (java stacktrace)
+    elsif ( $line =~ /^(.+(at+\s+)|(.*Hint:)|(.*Position:))|((\s+more)$)/ ){
+        next MAIN_LOOP;
+    }
+    #FIXME useless
+    else {
+        # construct necessary strings to message
+        $Message = $Message.$line;
+    }
+}
+
+#Do not keep empty message, used to reset only
+delete( $unique_err{''} );
+
+# if log detail level is NOT LOW
+if ( $Detail != 0 ){
+    # Print every error in file
+    while ( my ($key, $value) = each(%unique_err) ){
+        chomp $key;
+        print "$key\n$value\n";
+        print "-------------------------------\n";
+    }
+}
+
+# get total number of unique errors in file
+$Unique_err_num = scalar keys %unique_err;
+
+# Print total result
+print "Unique errors: $Unique_err_num\n";
+print "Total num of Errors: $Total_err\n";
+
+exit 0;
+
