@@ -14,7 +14,7 @@ my @skipped_exceptions = ('throwIfInvalidFormatParamValue', 'throwIfParamValueTo
 my @log_levels = ('ERROR', 'SEVERE', 'FATAL');
 
 # stacktrace useful to watch
-my @stacktrace = ('org.view');
+my @stacktrace = ('org\.view');
 #########################################
 
 
@@ -48,18 +48,12 @@ while ( defined(my $line = <STDIN>) ){
         }
     }
     # Useful stacktrace for us
-    elsif ( any { $line =~ /^(\s+at $_.+)$/ } @stacktrace ){
-        my $stacktrace = $1;
-        $unique_err{ $Message } .= $stacktrace."\n"  if ( $unique_err{ $Message } !~ /$stacktrace/ );
+    elsif ( any { $line =~ /^\s+at $_/ } @stacktrace ){
+        $unique_err{ $Message } .= $line  if ( defined $unique_err{ $Message } && $unique_err{ $Message } !~ /$line/ );
     }
     # Ignorable strings (java stacktrace)
     elsif ( $line =~ /^(.+(at+\s+)|(.*Hint:)|(.*Position:))|((\s+more)$)/ ){
         next MAIN_LOOP;
-    }
-    #FIXME useless
-    else {
-        # construct necessary strings to message
-        $Message = $Message.$line;
     }
 }
 
